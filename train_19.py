@@ -45,7 +45,7 @@ def get_opt():
     parser.add_argument('-l', '--lambda', type=float, default=1.)
     
     parser.add_argument("--display_count", type=int, default = 200)
-    parser.add_argument("--save_count", type=int, default = 100)
+    parser.add_argument("--save_count", type=int, default = 1000)
     parser.add_argument('-c', '--checkpoint', type=str, default='', help='model checkpoint for initialization')
     
     parser.add_argument("--dataroot", default = "data")
@@ -172,8 +172,12 @@ def train_hpm(opt, train_loader, model, d_g, board):
             print()
             
         if (step+1) % opt.save_count == 0:
+            """
             save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name, 'step_%06d.pth' % (step+1)))
             save_checkpoint(d_g, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name, 'step_%06d_dg.pth' % (step+1)))
+            """
+            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name, '.pth' % (step+1)))
+            save_checkpoint(d_g, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name, '_dg.pth' % (step+1)))
 
 def test_gmm(opt, test_loader, model):
     model.cuda()
@@ -248,7 +252,10 @@ def train_gmm(opt, train_loader, model, board):
             print('step: %8d, time: %.3f, loss: %.4f'%(step+1, t, loss.item()), flush=True)
 
         if (step+1) % opt.save_count == 0:
+            """
             save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'step_%06d.pth' % (step+1)))
+            """
+            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, '.pth' % (step+1)))
 
 def test_tom(opt, test_loader, model):
     model.cuda()
@@ -317,8 +324,11 @@ def train_tom(opt, train_loader, model, board):
                     loss_vgg.item(), loss_mask.item()), flush=True)
 
         if (step+1) % opt.save_count == 0:
+            """
             save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'step_%06d.pth' % (step+1)))
-
+            """
+            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, '.pth' % (step+1)))
+            
 def main():
     opt = get_opt()
 

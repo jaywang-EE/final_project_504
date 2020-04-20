@@ -495,6 +495,7 @@ def save_checkpoints_19(model, d_g, save_path):
     save_checkpoint(d_g, os.path.join(save_path, "D_G.pth"))
 
 def save_checkpoint(model, save_path):
+    print("saving "+save_path)
     if not os.path.exists(os.path.dirname(save_path)):
         os.makedirs(os.path.dirname(save_path))
     torch.save(model.cpu().state_dict(), save_path)
