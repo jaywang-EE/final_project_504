@@ -83,14 +83,15 @@ def test_hpm(opt, test_loader, model):
     for step, inputs in enumerate(test_loader.data_loader):
         iter_start_time = time.time()
         
-        c_names = inputs['c_name']
+        im_names = inputs['im_name']
         agnostic = inputs['agnostic'].cuda()
         c = inputs['cloth'].cuda()
 
-        segmentation = model(torch.cat([agnostic, c],1)).detach()
-        for i, c_name in enumerate(c_names):
-            print(segmentation[i, :, :, :].shape)
-            sm_image(segmentation[i, :, :, :], c_name, image_seg_dir) 
+        segmentation = model(torch.cat([agnostic, c],1))
+        values, indices = segmentation.max(1, keepdim=True)
+        print(indices.shape)
+        for i, im_name in enumerate(im_names):
+            sm_image(indices[i, :, :, :].double()/255., im_name.replace('.jpg', '.png'), image_seg_dir) 
 
 
 def train_hpm(opt, train_loader, model, d_g, board):

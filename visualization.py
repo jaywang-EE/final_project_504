@@ -45,6 +45,10 @@ def board_add_images(board, tag_name, img_tensors_list, step_count):
     for i, img in enumerate(tensor):
         board.add_image('%s/%03d' % (tag_name, i), img, step_count)
 
+def sm_seg(img_tensor, img_name, save_dir):
+    if not os.path.exists(save_dir): os.makedirs(save_dir) 
+    save_image(img_tensor, os.path.join(save_dir, img_name))
+
 def sm_image(img_tensor, img_name, save_dir):
     if not os.path.exists(save_dir): os.makedirs(save_dir) 
     save_image(img_tensor, os.path.join(save_dir, img_name))

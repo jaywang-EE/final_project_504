@@ -91,6 +91,7 @@ class CPDataset(data.Dataset):
         else:
             im_parse = Image.open(osp.join(self.data_path, 'image-seg', parse_name))
 
+        #np.array(Image.open("test.png"))
         # parsing segmentation
         parse_array = np.array(im_parse)
         parse_arrays = [np.expand_dims((parse_array == i).astype(np.float32), axis=0) for i in range(16)]
