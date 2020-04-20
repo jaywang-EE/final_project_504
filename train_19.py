@@ -65,6 +65,9 @@ def get_opt():
     parser.add_argument("--keep_step", type=int, default = 100000)
     parser.add_argument("--decay_step", type=int, default = 100000)
 
+    #viz
+    parser.add_argument("--vizseg", action='store_true', help='visualization')
+
     opt = parser.parse_args()
     return opt
 
@@ -89,8 +92,9 @@ def test_hpm(opt, test_loader, model):
 
         segmentation = model(torch.cat([agnostic, c],1))
         values, indices = segmentation.max(1, keepdim=True)
-        print(indices.shape)
         for i, im_name in enumerate(im_names):
+            if opt.vizseg:
+                sm_image(indices[i, :, :, :].double()/15., im_name.replace('.jpg', '.png'), image_seg_dir+'viz') 
             sm_image(indices[i, :, :, :].double()/255., im_name.replace('.jpg', '.png'), image_seg_dir) 
 
 
@@ -104,6 +108,7 @@ def train_hpm(opt, train_loader, model, d_g, board):
     
     # criterion
     criterionMCE = nn.CrossEntropyLoss()#nn.BCEWithLogitsLoss()
+    #criterionMSE = nn.MSELoss()
     criterionGAN = nn.BCELoss()
     
     # optimizer
@@ -121,7 +126,7 @@ def train_hpm(opt, train_loader, model, d_g, board):
         inputs = train_loader.next_batch()
             
         im = inputs['image'].cuda()#sz=b*3*256*192
-        sem_gt = inputs['seg'].cuda()
+        seg_gt = inputs['seg'].cuda()
         seg_enc = inputs['seg_enc'].cuda()
 
         agnostic = inputs['agnostic'].cuda()
@@ -153,9 +158,9 @@ def train_hpm(opt, train_loader, model, d_g, board):
         dis_label.data.fill_(1.0-random.random()*0.1)
         dis_g_output = d_g(segmentation)
         errG_fake = criterionGAN(dis_g_output, dis_label)
-        #loss_mce = criterionMCE(segmentation, sem_gt)
+        loss_mse = criterionMCE(segmentation.view(batch_size, 16, -1), seg_gt.view(batch_size, -1))
 
-        loss = errG_fake# + loss_mce
+        loss = errG_fake + loss_mse * 0.01
         loss.backward()
         optimizerG.step()
                     
@@ -376,7 +381,7 @@ def main():
         save_checkpoints(model, d_g, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name+"_final", '%s.pth'))
 
     elif opt.stage == 'GMM':
-        seg_unet = UnetGenerator(25, 16, 6, ngf=64, norm_layer=nn.InstanceNorm2d, clsf=True)
+        #seg_unet = UnetGenerator(25, 16, 6, ngf=64, norm_layer=nn.InstanceNorm2d, clsf=True)
         model = GMM(opt, 1)
         if not opt.checkpoint =='' and os.path.exists(opt.checkpoint):
             load_checkpoint(model, opt.checkpoint)

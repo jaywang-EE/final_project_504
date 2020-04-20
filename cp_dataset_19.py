@@ -102,7 +102,9 @@ class CPDataset(data.Dataset):
         parse_pants = np.squeeze(parse_arrays[9])
 
         parse_tensor_enc = torch.from_numpy(np.concatenate(parse_arrays,0))
+        # for NLLloss
         parse_tensor = torch.from_numpy(parse_array).long()
+        parse_tensor[parse_tensor>15] = 0
        
         # shape downsample
         parse_shape = Image.fromarray((parse_shape*255).astype(np.uint8))
