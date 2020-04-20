@@ -38,7 +38,7 @@ def get_opt():
     
     parser.add_argument('-m', '--mode', default = "train")
 
-    parser.add_argument('-j', '--workers', type=int, default=1)
+    parser.add_argument('-j', '--workers', type=int, default=4)
     parser.add_argument('-b', '--batch-size', type=int, default=4)
     parser.add_argument('-d', '--debug', type=str, default="debug")
     parser.add_argument('-w', '--winsize', type=int, default=48)
@@ -55,6 +55,8 @@ def get_opt():
     parser.add_argument("--shuffle", action='store_false', help='shuffle input data')
 
     # training 
+    parser.add_argument("--alpha", type=int, default = 1) # FOR HPM
+
     parser.add_argument("--fine_width", type=int, default = 192)
     parser.add_argument("--fine_height", type=int, default = 256)
     parser.add_argument("--radius", type=int, default = 5)
@@ -158,16 +160,16 @@ def train_hpm(opt, train_loader, model, d_g, board):
         dis_label.data.fill_(1.0-random.random()*0.1)
         dis_g_output = d_g(segmentation)
         errG_fake = criterionGAN(dis_g_output, dis_label)
-        loss_mse = criterionMCE(segmentation.view(batch_size, 16, -1), seg_gt.view(batch_size, -1))
+        loss_mce = criterionMCE(segmentation.view(batch_size, 16, -1), seg_gt.view(batch_size, -1))
 
-        loss = errG_fake + loss_mse * 0.01
+        loss = errG_fake + loss_mce * opt.alpha
         loss.backward()
         optimizerG.step()
                     
         if (step+1) % opt.display_count == 0:
             t = time.time() - iter_start_time
             
-            loss_dict = {"GAN":errG_fake.item(), #"TOT":loss.item(), "MCE":loss_mce.item(), 
+            loss_dict = {"GAN":errG_fake.item(), "TOT":loss.item(), "MCE":loss_mce.item(), 
                          "DG":((errDg_fake+errDg_real)/2).item()}
             print('step: %d|time: %.3f'%(step+1, t), end="")
             
@@ -233,10 +235,10 @@ def train_gmm(opt, train_loader, model, board):
             
         im = inputs['image'].cuda()
         c = inputs['cloth'].cuda()
-        cm = inputs['cloth_mask'].cuda()
+        #cm = inputs['cloth_mask'].cuda()
         wm = inputs['warped_mask'].cuda()
         im_c =  inputs['parse_cloth'].cuda()
-        im_g = inputs['grid_image'].cuda()
+        #im_g = inputs['grid_image'].cuda()
             
         grid, theta = model(wm, c)
         warped_cloth = F.grid_sample(c, grid, padding_mode='border')
@@ -371,7 +373,7 @@ def main():
         d_g= Discriminator_G(opt, 16)
         if not opt.checkpoint =='' and os.path.exists(opt.checkpoint):
             load_checkpoint(model, opt.checkpoint)
-            load_checkpoint(d_g, opt.checkpoint[:-4] + "_dg.pth")
+            load_checkpoint(d_g, opt.checkpoint[:-9] + "dg.pth")
 
         if opt.mode == "train":
             train_hpm(opt, train_loader, model, d_g, board)

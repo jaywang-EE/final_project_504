@@ -86,7 +86,7 @@ class CPDataset(data.Dataset):
 
         # load parsing image
         parse_name = im_name.replace('.jpg', '.png')
-        if self.stage == 'HPM':
+        if 1:#self.stage == 'HPM':
             im_parse = Image.open(osp.join(self.data_path, 'image-parse', parse_name))
         else:
             im_parse = Image.open(osp.join(self.data_path, 'image-seg', parse_name))
@@ -155,6 +155,8 @@ class CPDataset(data.Dataset):
         # cloth-agnostic representation
         if self.stage == 'HPM':
             agnostic = torch.cat([im_h, shape, pose_map], 0) 
+        elif self.stage == 'GMM':
+            agnostic = "NO"
         elif self.stage == 'TOM':
             agnostic = torch.cat([im_h, pose_map, parse_tensor, hand, pant], 0) 
 
@@ -169,7 +171,7 @@ class CPDataset(data.Dataset):
             'im_name':  im_name,    # for visualization or ground truth
             'cloth':    c,          # for input
             'cloth_mask':     cm,   # for input
-            'warped_mask': wm,
+            'warped_mask': pcm,
             'hand': hand,
             'pant': pant,
             'image':    im,         # for visualization
