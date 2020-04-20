@@ -176,8 +176,8 @@ def train_hpm(opt, train_loader, model, d_g, board):
             save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name, 'step_%06d.pth' % (step+1)))
             save_checkpoint(d_g, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name, 'step_%06d_dg.pth' % (step+1)))
             """
-            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name, 'model.pth' % (step+1)))
-            save_checkpoint(d_g, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name, 'dg.pth' % (step+1)))
+            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name, 'model.pth'))
+            save_checkpoint(d_g, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name, 'dg.pth'))
 
 def test_gmm(opt, test_loader, model):
     model.cuda()
@@ -255,7 +255,7 @@ def train_gmm(opt, train_loader, model, board):
             """
             save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'step_%06d.pth' % (step+1)))
             """
-            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'model.pth' % (step+1)))
+            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'model.pth'))
 
 def test_tom(opt, test_loader, model):
     model.cuda()
@@ -327,7 +327,7 @@ def train_tom(opt, train_loader, model, board):
             """
             save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'step_%06d.pth' % (step+1)))
             """
-            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'model.pth' % (step+1)))
+            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'model.pth'))
             
 def main():
     opt = get_opt()
