@@ -53,27 +53,32 @@ class CPDataset(data.Dataset):
         im_name = self.im_names[index]
 
         # cloth image & cloth mask
-        wm = "NO"
+        wm = ""
+        cm = ""
         if self.stage == 'HPM':
             c = Image.open(osp.join(self.data_path, 'cloth', c_name))
-            cm = Image.open(osp.join(self.data_path, 'cloth-mask', c_name))
+            #cm = Image.open(osp.join(self.data_path, 'cloth-mask', c_name))
         elif self.stage == "GMM":
             c = Image.open(osp.join(self.data_path, 'cloth', c_name))
-            cm = Image.open(osp.join(self.data_path, 'cloth-mask', c_name))
+            """
             wm = Image.open(osp.join(self.data_path, 'warp-mask', c_name))
             wm_array = np.array(wm)
             wm_array = (wm_array >= 128).astype(np.float32)
-            wm = torch.from_numpy(wm_array) # [0,1]
+            wm = torch.from_numpy(wm_array)
             wm.unsqueeze_(0)
-        else:
+            """
+        elif self.stage == "TOM":
             c = Image.open(osp.join(self.data_path, 'warp-cloth', c_name))
-            cm = Image.open(osp.join(self.data_path, 'warp-mask', c_name))
+        else:
+            print("Illegal type!")
 
         c = self.transform(c)  # [-1,1]
-        cm_array = np.array(cm)
-        cm_array = (cm_array >= 128).astype(np.float32)
-        cm = torch.from_numpy(cm_array) # [0,1]
-        cm.unsqueeze_(0)
+
+        if cm:
+            cm_array = np.array(cm)
+            cm_array = (cm_array >= 128).astype(np.float32)
+            cm = torch.from_numpy(cm_array) # [0,1]
+            cm.unsqueeze_(0)
 
         # person image 
         im = Image.open(osp.join(self.data_path, 'image', im_name))
@@ -85,6 +90,8 @@ class CPDataset(data.Dataset):
             im_parse = Image.open(osp.join(self.data_path, 'image-parse', parse_name))
         else:
             im_parse = Image.open(osp.join(self.data_path, 'image-seg', parse_name))
+
+        # parsing segmentation
         parse_array = np.array(im_parse)
         parse_arrays = [np.expand_dims((parse_array == i).astype(np.float32), axis=0) for i in range(16)]
         parse_shape = (parse_array > 0).astype(np.float32)
@@ -101,12 +108,19 @@ class CPDataset(data.Dataset):
         parse_shape = parse_shape.resize((self.fine_width//16, self.fine_height//16), Image.BILINEAR)
         parse_shape = parse_shape.resize((self.fine_width, self.fine_height), Image.BILINEAR)
         shape = self.transform(parse_shape) # [-1,1]
-        phead = torch.from_numpy(parse_head) # [0,1]
+
         pcm = torch.from_numpy(parse_cloth) # [0,1]
+        phead = torch.from_numpy(parse_head) # [0,1]
+        phand = torch.from_numpy(parse_hands) # [0,1]
+        ppant = torch.from_numpy(parse_pants) # [0,1]
 
         # upper cloth
         im_c = im * pcm + (1 - pcm) # [-1,1], fill 1 for other parts
         im_h = im * phead - (1 - phead) # [-1,1], fill 0 for other parts
+
+        hand = im * phead - (1 - phead)
+        pant = im * phead - (1 - phead)
+
 
         # load pose points
         pose_name = im_name.replace('.jpg', '_keypoints.json')
@@ -137,9 +151,9 @@ class CPDataset(data.Dataset):
         
         # cloth-agnostic representation
         if self.stage == 'HPM':
-            agnostic = torch.cat([shape, im_h, pose_map], 0) 
-        else:
-            agnostic = torch.cat([parse_tensor, im_h, pose_map], 0) 
+            agnostic = torch.cat([im_h, shape, pose_map], 0) 
+        elif self.stage == 'TOM':
+            agnostic = torch.cat([im_h, pose_map, parse_tensor, hand, pant], 0) 
 
         if self.stage == 'GMM':
             im_g = Image.open('grid.png')
@@ -153,13 +167,14 @@ class CPDataset(data.Dataset):
             'cloth':    c,          # for input
             'cloth_mask':     cm,   # for input
             'warped_mask': wm,
+            'hand': hand,
+            'pant': pant,
             'image':    im,         # for visualization
             'agnostic': agnostic,   # for input
             'parse_cloth': im_c,    # for ground truth
             'seg': parse_tensor,    # for ground truth
             'seg_enc': parse_tensor_enc,    # for ground truth
             'shape': shape,         # for visualization
-            'head': im_h,           # for visualization
             'pose_image': im_pose,  # for visualization
             'grid_image': im_g,     # for visualization
         }
