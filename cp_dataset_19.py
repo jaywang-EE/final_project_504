@@ -196,7 +196,7 @@ class CPDataLoader(object):
 
         self.data_loader = torch.utils.data.DataLoader(
                 dataset, batch_size=opt.batch_size, shuffle=(train_sampler is None),
-                num_workers=opt.workers, pin_memory=True, sampler=train_sampler)
+                num_workers=opt.workers, pin_memory=True, sampler=train_sampler, drop_last=True)
         self.dataset = dataset
         self.data_iter = self.data_loader.__iter__()
        
