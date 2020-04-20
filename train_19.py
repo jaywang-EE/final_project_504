@@ -44,8 +44,13 @@ def get_opt():
     parser.add_argument('-w', '--winsize', type=int, default=48)
     parser.add_argument('-l', '--lambda', type=float, default=1.)
     
+    parser.add_argument("--display_count", type=int, default = 200)
+    parser.add_argument("--save_count", type=int, default = 100)
+    parser.add_argument('-c', '--checkpoint', type=str, default='', help='model checkpoint for initialization')
+    
     parser.add_argument("--dataroot", default = "data")
     parser.add_argument("--datamode", default = "train")
+    parser.add_argument("--result_dir", default = "output")
     parser.add_argument("--data_list", default = "train_pairs.txt")
     parser.add_argument("--shuffle", action='store_false', help='shuffle input data')
 
@@ -57,9 +62,6 @@ def get_opt():
     parser.add_argument('--lr', type=float, default=0.0001, help='initial learning rate for adam')
     parser.add_argument('--tensorboard_dir', type=str, default='tensorboard', help='save tensorboard infos')
     parser.add_argument('--checkpoint_dir', type=str, default='checkpoints', help='save checkpoint infos')
-    parser.add_argument('--checkpoint', type=str, default='', help='model checkpoint for initialization')
-    parser.add_argument("--display_count", type=int, default = 200)
-    parser.add_argument("--save_count", type=int, default = 100)
     parser.add_argument("--keep_step", type=int, default = 100000)
     parser.add_argument("--decay_step", type=int, default = 100000)
 
@@ -85,8 +87,10 @@ def test_hpm(opt, test_loader, model):
         agnostic = inputs['agnostic'].cuda()
         c = inputs['cloth'].cuda()
 
-        segmentation = model(torch.cat([agnostic, c],1))
-        save_images(segmentation, c_names, image_seg_dir) 
+        segmentation = model(torch.cat([agnostic, c],1)).detach()
+        for i, c_name in enumerate(c_names):
+            print(segmentation[i, :, :, :].shape)
+            sm_image(segmentation[i, :, :, :], c_name, image_seg_dir) 
 
 
 def train_hpm(opt, train_loader, model, d_g, board):
@@ -168,7 +172,7 @@ def train_hpm(opt, train_loader, model, d_g, board):
             
         if (step+1) % opt.save_count == 0:
             save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name, 'step_%06d.pth' % (step+1)))
-            save_checkpoint(d_g, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name +'_dg', 'step_%06d.pth' % (step+1)))
+            save_checkpoint(d_g, os.path.join(opt.checkpoint_dir, opt.stage +'_'+ opt.name, 'step_%06d_dg.pth' % (step+1)))
 
 def test_gmm(opt, test_loader, model):
     model.cuda()
@@ -198,7 +202,7 @@ def test_gmm(opt, test_loader, model):
         grid, theta = model(wm, c)
         warped_cloth = F.grid_sample(c, grid, padding_mode='border')
 
-        save_images(warped_cloth, c_names, warp_cloth_dir) 
+        sm_image(warped_cloth, c_names, warp_cloth_dir) 
 
 def train_gmm(opt, train_loader, model, board):
     model.cuda()
@@ -264,7 +268,7 @@ def test_tom(opt, test_loader, model):
         
         p_tryon = model(torch.cat([agnostic, c],1))
 
-        save_images(warped_cloth, c_names, warp_cloth_dir) 
+        sm_image(warped_cloth, c_names, warp_cloth_dir) 
 
 def train_tom(opt, train_loader, model, board):
     model.cuda()
@@ -350,9 +354,8 @@ def main():
         model = UnetGenerator(25, 16, 6, ngf=64, norm_layer=nn.InstanceNorm2d, clsf=True)
         d_g= Discriminator_G(opt, 16)
         if not opt.checkpoint =='' and os.path.exists(opt.checkpoint):
-            if not os.path.isdir(opt.checkpoint):
-                raise NotImplementedError('checkpoint should be dir, not file: %s' % opt.checkpoint)
-            load_checkpoints(model, d_g, os.path.join(opt.checkpoint, "%s.pth"))
+            load_checkpoint(model, opt.checkpoint)
+            load_checkpoint(d_g, opt.checkpoint[:-4] + "_dg.pth")
 
         if opt.mode == "train":
             train_hpm(opt, train_loader, model, d_g, board)
