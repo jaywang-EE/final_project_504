@@ -130,7 +130,7 @@ def train_hpm(opt, train_loader, model, d_g, board):
 
         optimizerD.zero_grad()
         #D_real
-        dis_label.data.fill_(1.)
+        dis_label.data.fill_(1.0-random.random()*0.1)
         dis_g_output = d_g(seg_enc)
         
         errDg_real = criterionGAN(dis_g_output, dis_label)
@@ -140,7 +140,7 @@ def train_hpm(opt, train_loader, model, d_g, board):
         segmentation = model(torch.cat([agnostic, c],1))
 
         #D_fake
-        dis_label.data.fill_(0.)
+        dis_label.data.fill_(0.0+random.random()*0.1)
 
         dis_g_output = d_g(segmentation.detach())
         errDg_fake = criterionGAN(dis_g_output, dis_label)
@@ -150,7 +150,7 @@ def train_hpm(opt, train_loader, model, d_g, board):
 
         #model_train
         optimizerG.zero_grad()
-        dis_label.data.fill_(1.)
+        dis_label.data.fill_(1.0-random.random()*0.1)
         dis_g_output = d_g(segmentation)
         errG_fake = criterionGAN(dis_g_output, dis_label)
         #loss_mce = criterionMCE(segmentation, sem_gt)
