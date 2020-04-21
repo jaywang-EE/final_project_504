@@ -240,6 +240,8 @@ def train_gmm(opt, train_loader, model, board):
         im_c =  inputs['parse_cloth'].cuda()
         #im_g = inputs['grid_image'].cuda()
             
+        wm = wm.unsqueeze(1)
+
         grid, theta = model(wm, c)
         warped_cloth = F.grid_sample(c, grid, padding_mode='border')
         """
