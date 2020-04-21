@@ -92,11 +92,16 @@ def test_hpm(opt, test_loader, model):
         agnostic = inputs['agnostic'].cuda()
         c = inputs['cloth'].cuda()
 
+        seg_gt = inputs['seg'].cuda()
+
         segmentation = model(torch.cat([agnostic, c],1))
         values, indices = segmentation.max(1, keepdim=True)
+        # print(indices.shape)
+        # print(seg_gt.shape)
         for i, im_name in enumerate(im_names):
             if opt.vizseg:
-                sm_image(indices[i, :, :, :].double()/15., im_name.replace('.jpg', '.png'), image_seg_dir+'viz') 
+                sm_image(indices[i, :, :, :].double()/20., im_name.replace('.jpg', '.png'), image_seg_dir+'viz') 
+                sm_image(seg_gt[i, :, :].unsqueeze(0).double()/20., im_name.replace('.jpg', '.png'), image_seg_dir+'vizo') 
             sm_image(indices[i, :, :, :].double()/255., im_name.replace('.jpg', '.png'), image_seg_dir) 
 
 
