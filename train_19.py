@@ -216,10 +216,13 @@ def test_gmm(opt, test_loader, model):
         c = inputs['cloth'].cuda()
         wm = inputs['warped_mask'].cuda()
             
+        wm = wm.unsqueeze(1)
         grid, theta = model(wm, c)
         warped_cloth = F.grid_sample(c, grid, padding_mode='border')
 
-        sm_image(warped_cloth, c_names, warp_cloth_dir) 
+        for i, c_name in enumerate(c_names):
+            sm_image(warped_cloth[i, :, :, :].double(), c_name, warp_cloth_dir) 
+
 
 def train_gmm(opt, train_loader, model, board):
     model.cuda()
@@ -403,7 +406,7 @@ def main():
         save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'gmm_final.pth'))
     
     elif opt.stage == 'TOM':
-        model = UnetGenerator(25, 3, 6, ngf=64, norm_layer=nn.InstanceNorm2d)
+        model = UnetGenerator(31, 3, 6, ngf=64, norm_layer=nn.InstanceNorm2d)
         if not opt.checkpoint =='' and os.path.exists(opt.checkpoint):
             load_checkpoint(model, opt.checkpoint)
 

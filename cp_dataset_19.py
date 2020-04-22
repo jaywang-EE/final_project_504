@@ -158,7 +158,8 @@ class CPDataset(data.Dataset):
         elif self.stage == 'GMM':
             agnostic = "NO"
         elif self.stage == 'TOM':
-            agnostic = torch.cat([im_h, pose_map, parse_tensor, hand, pant], 0) 
+            #print(im_h.dtype, pose_map.dtype, parse_tensor.float().dtype, hand.dtype, pant.dtype)
+            agnostic = torch.cat([im_h, pose_map, parse_tensor.unsqueeze(0).float(), hand, pant], 0) 
 
         if self.stage == 'GMM':
             im_g = Image.open('grid.png')
