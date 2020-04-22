@@ -98,7 +98,7 @@ class CPDataset(data.Dataset):
             parse_array = parse_array[:, :, 0]
             #print(parse_array[:, :, 1] == parse_array[:, :, 1], parse_array.min(), parse_array.max())
         parse_arrays = [np.expand_dims((parse_array == i).astype(np.float32), axis=0) for i in range(16)]
-        print(im_parse.size, parse_array.shape, parse_arrays[0].shape)
+        #print(im_parse.size, parse_array.shape, parse_arrays[0].shape)
         parse_shape = (parse_array > 0).astype(np.float32)
         parse_head = np.squeeze(parse_arrays[1] + parse_arrays[2] + parse_arrays[4] + parse_arrays[13])
         parse_cloth = np.squeeze(parse_arrays[5] + parse_arrays[6] + parse_arrays[7])
@@ -122,7 +122,7 @@ class CPDataset(data.Dataset):
         ppant = torch.from_numpy(parse_pants) # [0,1]
 
         # upper cloth
-        print(parse_array.shape, parse_cloth.shape, pcm.shape)
+        #print(parse_array.shape, parse_cloth.shape, pcm.shape)
         im_c = im * pcm + (1 - pcm) # [-1,1], fill 1 for other parts
         im_h = im * phead - (1 - phead) # [-1,1], fill 0 for other parts
 
