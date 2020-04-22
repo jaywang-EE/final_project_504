@@ -118,7 +118,7 @@ class CPDataset(data.Dataset):
         ppant = torch.from_numpy(parse_pants) # [0,1]
 
         # upper cloth
-        print(im.shape, pcm.shape)
+        print(parse_cloth.shape, pcm.shape)
         im_c = im * pcm + (1 - pcm) # [-1,1], fill 1 for other parts
         im_h = im * phead - (1 - phead) # [-1,1], fill 0 for other parts
 
