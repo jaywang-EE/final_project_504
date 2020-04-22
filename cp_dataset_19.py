@@ -86,7 +86,7 @@ class CPDataset(data.Dataset):
 
         # load parsing image
         parse_name = im_name.replace('.jpg', '.png')
-        if 1:#self.stage == 'HPM':
+        if self.stage == 'HPM':
             im_parse = Image.open(osp.join(self.data_path, 'image-parse', parse_name))
         else:
             im_parse = Image.open(osp.join(self.data_path, 'image-seg', parse_name))
