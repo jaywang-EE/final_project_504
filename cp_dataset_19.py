@@ -90,6 +90,10 @@ class CPDataset(data.Dataset):
             im_parse = Image.open(osp.join(self.data_path, 'image-parse', parse_name))
         else:
             im_parse = Image.open(osp.join(self.data_path, 'image-seg', parse_name))
+            if len(im_parse.size) > 2:
+                print(im_parse.size)
+                im_parse = im_parse.convert('1')
+                print(im_parse.size)
 
         #np.array(Image.open("test.png"))
         # parsing segmentation
