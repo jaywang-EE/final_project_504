@@ -93,11 +93,9 @@ class CPDataset(data.Dataset):
 
         #np.array(Image.open("test.png"))
         # parsing segmentation
-        print(im_parse.size)
         parse_array = np.array(im_parse)
-        print(parse_array.shape)
         parse_arrays = [np.expand_dims((parse_array == i).astype(np.float32), axis=0) for i in range(16)]
-        print(parse_arrays[0].shape)
+        print(im_parse.size, parse_array.shape, parse_arrays[0].shape)
         parse_shape = (parse_array > 0).astype(np.float32)
         parse_head = np.squeeze(parse_arrays[1] + parse_arrays[2] + parse_arrays[4] + parse_arrays[13])
         parse_cloth = np.squeeze(parse_arrays[5] + parse_arrays[6] + parse_arrays[7])
