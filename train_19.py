@@ -55,7 +55,7 @@ def get_opt():
     parser.add_argument("--shuffle", action='store_false', help='shuffle input data')
 
     # training 
-    parser.add_argument("--alpha", type=int, default = 1) # FOR HPM
+    parser.add_argument("--alpha", type=float, default = 1.) # FOR HPM
 
     parser.add_argument("--fine_width", type=int, default = 192)
     parser.add_argument("--fine_height", type=int, default = 256)
