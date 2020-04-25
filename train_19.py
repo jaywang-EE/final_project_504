@@ -282,18 +282,25 @@ def test_tom(opt, test_loader, model):
     save_dir = os.path.join(opt.result_dir, base_name, opt.datamode)
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
-    warp_cloth_dir = os.path.join(save_dir, 'warp-cloth')
-    if not os.path.exists(warp_cloth_dir):
-        os.makedirs(warp_cloth_dir)
+    tryon_dir = os.path.join(save_dir, 'tryon')
+    if not os.path.exists(tryon_dir):
+        os.makedirs(tryon_dir)
 
     for step, inputs in enumerate(test_loader.data_loader):        
-        c_names = inputs['c_name']
+        im_names = inputs['im_name']   
         agnostic = inputs['agnostic'].cuda()
         c = inputs['cloth'].cuda()
+        warped_masks = inputs['warped_mask'].cuda()
+
         
         p_tryon = model(torch.cat([agnostic, c],1))
 
-        sm_image(warped_cloth, c_names, warp_cloth_dir) 
+        for i, im_name in enumerate(im_names):
+            #print(c.shape, p_tryon.shape, warped_masks.shape)
+            #p_tryon = p_tryon * (1 - warped_masks) + c * warped_masks
+            sm_image(p_tryon[i, :, :, :] * (1 - warped_masks[i, :, :]) + c[i, :, :, :] * warped_masks[i, :, :], im_name, tryon_dir) 
+
+        #sm_image(warped_cloth, c_names, tryon_dir) 
 
 def train_tom(opt, train_loader, model, board):
     model.cuda()
