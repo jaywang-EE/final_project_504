@@ -327,30 +327,36 @@ def train_tom(opt, train_loader, model, board):
         agnostic = inputs['agnostic'].cuda()
         c = inputs['cloth'].cuda()
         
-        p_tryon = model(torch.cat([agnostic, c],1))
+        #generate image
+        #p_tryon = model(torch.cat([agnostic, c],1))
 
+        outputs = model(torch.cat([agnostic, c],1))
+        p_rendered, m_composite = torch.split(outputs, 3,1)
+        p_rendered = torch.tanh(p_rendered)
+        m_composite = torch.sigmoid(m_composite)
+        p_tryon = c * m_composite+ p_rendered * (1 - m_composite)
+        
         loss_l1 = criterionL1(p_tryon, im)
         loss_vgg = criterionVGG(p_tryon, im)
-        #loss_mask = criterionMask(m_composite, cm)
-        loss = loss_l1 + loss_vgg# + loss_mask
+        loss_mask = criterionMask(m_composite, cm)
+        loss = loss_l1 + loss_vgg + loss_mask
         optimizer.zero_grad()
         loss.backward()
         optimizer.step()
             
         if (step+1) % opt.display_count == 0:
+            """
             board.add_scalar('metric', loss.item(), step+1)
             board.add_scalar('L1', loss_l1.item(), step+1)
             board.add_scalar('VGG', loss_vgg.item(), step+1)
-            #board.add_scalar('MaskL1', loss_mask.item(), step+1)
+            board.add_scalar('MaskL1', loss_mask.item(), step+1)
+            """
             t = time.time() - iter_start_time
-            print('step: %8d, time: %.3f, loss: %.4f, l1: %.4f, vgg: %.4f' 
+            print('step: %8d, time: %.3f, loss: %.4f, l1: %.4f, vgg: %.4f, mask: %.4f' 
                     % (step+1, t, loss.item(), loss_l1.item(), 
-                    loss_vgg.item()), flush=True)
+                    loss_vgg.item(), loss_mask.item()), flush=True)
 
         if (step+1) % opt.save_count == 0:
-            """
-            save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'step_%06d.pth' % (step+1)))
-            """
             save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'model.pth'))
             
 def main():
@@ -413,7 +419,7 @@ def main():
         save_checkpoint(model, os.path.join(opt.checkpoint_dir, opt.name, 'gmm_final.pth'))
     
     elif opt.stage == 'TOM':
-        model = UnetGenerator(31, 3, 6, ngf=64, norm_layer=nn.InstanceNorm2d)
+        model = UnetGenerator(31, 4, 6, ngf=64, norm_layer=nn.InstanceNorm2d)
         if not opt.checkpoint =='' and os.path.exists(opt.checkpoint):
             load_checkpoint(model, opt.checkpoint)
 
