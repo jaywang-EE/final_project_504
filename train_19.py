@@ -383,6 +383,10 @@ def main():
 
     print(opt)
 
+    if opt.mode != 'train':
+        opt.batch_size = 1
+
+
     if opt.mode != 'train' and not opt.checkpoint:
         print("You need to have a checkpoint for: "+opt.mode)
         return None
