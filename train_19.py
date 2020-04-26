@@ -96,8 +96,10 @@ def test_hpm(opt, test_loader, model):
 
         segmentation = model(torch.cat([agnostic, c],1))
         values, indices = segmentation.max(1, keepdim=True)
-        # print(indices.shape)
-        # print(seg_gt.shape)
+
+        if (step+1) % opt.display_count == 0:
+            print("\r%d / %d"%(step+1, len(test_loader)), end = " "*10)
+
         for i, im_name in enumerate(im_names):
             if opt.vizseg:
                 sm_image(indices[i, :, :, :].double()/20., im_name.replace('.jpg', '.png'), image_seg_dir+'viz') 
@@ -220,6 +222,9 @@ def test_gmm(opt, test_loader, model):
         grid, theta = model(wm, c)
         warped_cloth = F.grid_sample(c, grid, padding_mode='border')
 
+        if (step+1) % opt.display_count == 0:
+            print("\r%d / %d"%(step+1, len(test_loader)), end = " "*10)
+
         for i, c_name in enumerate(c_names):
             sm_image(warped_cloth[i, :, :, :].double(), c_name, warp_cloth_dir) 
 
@@ -295,12 +300,16 @@ def test_tom(opt, test_loader, model):
         
         p_tryon = model(torch.cat([agnostic, c],1))
 
+        if (step+1) % opt.display_count == 0:
+            print("\r%d / %d"%(step+1, len(test_loader)), end = " "*10)
+
         for i, im_name in enumerate(im_names):
             #print(c.shape, p_tryon.shape, warped_masks.shape)
             #p_tryon = p_tryon * (1 - warped_masks) + c * warped_masks
             sm_image(p_tryon[i, :, :, :] * (1 - warped_masks[i, :, :]) + c[i, :, :, :] * warped_masks[i, :, :], im_name, tryon_dir) 
 
         #sm_image(warped_cloth, c_names, tryon_dir) 
+    print()
 
 def train_tom(opt, train_loader, model, board):
     model.cuda()
