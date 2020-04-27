@@ -293,20 +293,29 @@ def test_tom(opt, test_loader, model):
 
     for step, inputs in enumerate(test_loader.data_loader):        
         im_names = inputs['im_name']   
+        """
         agnostic = inputs['agnostic'].cuda()
         c = inputs['cloth'].cuda()
         warped_masks = inputs['warped_mask'].cuda()
-
+        """
+        agnostic = inputs['agnostic'].cuda()
+        c = inputs['cloth'].cuda()
+        #cm = inputs['warped_mask'].cuda()
         
-        p_tryon = model(torch.cat([agnostic, c],1))
+        outputs = model(torch.cat([agnostic, c],1))
+        p_rendered, m_composite = torch.split(outputs, 3,1)
+        p_rendered = torch.tanh(p_rendered)
+        m_composite = torch.sigmoid(m_composite)
+        p_tryon = c * m_composite+ p_rendered * (1 - m_composite)
+
+        #p_tryon = model(torch.cat([agnostic, c],1))
 
         if (step+1) % opt.display_count == 0:
             print("\r%d / %d"%(step+1, len(test_loader.data_loader)), end = " "*10)
 
         for i, im_name in enumerate(im_names):
-            #print(c.shape, p_tryon.shape, warped_masks.shape)
-            #p_tryon = p_tryon * (1 - warped_masks) + c * warped_masks
-            sm_image(p_tryon[i, :, :, :] * (1 - warped_masks[i, :, :]) + c[i, :, :, :] * warped_masks[i, :, :], im_name, tryon_dir) 
+            #sm_image(p_tryon[i, :, :, :] * (1 - warped_masks[i, :, :]) + c[i, :, :, :] * warped_masks[i, :, :], im_name, tryon_dir) 
+            sm_image(p_tryon[i, :, :, :], im_name, tryon_dir) 
 
         #sm_image(warped_cloth, c_names, tryon_dir) 
     print()
