@@ -1,22 +1,37 @@
-# DP-VTON
-Implementation of eecs545-19F final project, based on cp-VTON.
+# IB-VTON implementation (ICIP 2019)
+Implementation of eecs504-19W final project, based on cp-VTON.
+
+## Download dataset
+```
+python data_download.py
+```
+
+## HPM train
+```
+python train_19.py --stage HPM --save_count 5000
+```
+
+## HPM evaluation
+```
+python train_19.py --stage HPM --m [test/val] --checkpoint <path_to_module>/hpm_final.pth
+```
 
 ## GMM train
 ```
-python train.py --name gmm_train_new --stage GMM --workers 4 --save_count 5000 --shuffle
+python train_19.py --stage GMM --save_count 5000
 ```
 
 ## GMM evaluation
 ```
-python test.py --name gmm_traintest_new --stage GMM --workers 4 --datamode test --data_list test_pairs.txt --checkpoint <path_to_module>/gmm_final.pth
+python train_19.py --stage GMM --m [test/val] --checkpoint <path_to_module>/gmm_final.pth
 ```
 
 ## TOM train
 ```
-python train.py --name tom_train_new --stage TOM --workers 4 --save_count 5000 --shuffle 
+python train_19.py --stage TOM --save_count 5000
 ```
 
 ## TOM evaluation
 ```
-python test.py --name tom_test_new --stage TOM --workers 4 --datamode test --data_list test_pairs.txt --checkpoint <path_to_module>/tom_final.pth
+python train_19.py --stage TOM --m [test/val] --checkpoint <path_to_module>/gmm_final.pth
 ```
